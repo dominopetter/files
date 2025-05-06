@@ -1,0 +1,78 @@
+#!/bin/bash
+#
+# Jupyterlab start script for running Jupyterlab in Domino
+# Location: /opt/domino/workspaces/jupyterlab/start
+# This file should be executable by the Domino user account
+#
+# Copyright (C) 2024, Domino Data Lab, Inc.
+#
+
+CONF_DIR="${HOME}/.jupyterlab"
+CONF_FILE="${CONF_DIR}/jupyter_lab_config.py"
+JUPYTERLAB_PORT="8888"
+
+# Jupyter reads the user's "SHELL" variable for choosing which shell to use in a terminal
+export SHELL=/usr/bin/bash
+if ! echo $PATH | egrep -q "$HOME/\.local/bin"; then
+    export PATH="$HOME/.local/bin:$PATH"
+fi
+
+# Redirect Domino workspace path to Jupyterlab app
+PREFIX=/
+if [[ -n "$DOMINO_PROJECT_OWNER" ]]; then
+    PREFIX="/${DOMINO_PROJECT_OWNER}/${DOMINO_PROJECT_NAME}/${DOMINO_SESSIONPATH_COMPONENT:-notebookSession}/${DOMINO_RUN_ID}/"
+fi
+
+if ! [ -f "$CONF_FILE" ]; then
+    # Create Jupyterlab configuration directory
+    mkdir -p "$CONF_DIR"
+    # Create Jupyterlab configuration file
+    cat << EOF > "$CONF_FILE"
+# The proxy path inserted after the domain & port
+c.ServerApp.base_url = '${PREFIX}'
+# The path to the directory to be opened in the file browser by default prefixed by 'tree'
+c.LabApp.default_url = '/lab/tree${DOMINO_WORKING_DIR:-$HOME}'
+# The highest directory to be navigated by the file browser
+c.ServerApp.root_dir = '/'
+c.ServerApp.preferred_dir = '${DOMINO_WORKING_DIR}'
+# The default cell execution timeout in nbconvert is 30 seconds, set it to a year
+c.ExecutePreprocessor.timeout = 365*24*60*60
+# Allow workspace to display in an iframe
+c.ServerApp.tornado_settings = {'headers': {'Content-Security-Policy': 'frame-ancestors *'}, 'static_url_prefix': '${PREFIX}static/'}
+# Disable CORS check to allow workspace proxy
+c.ServerApp.disable_check_xsrf = True
+# Disable login screen
+c.IdentityProvider.token = u''
+# Avoid IOPub data rate exceeded errors when visualizing large datasets (in bytes)
+c.ZMQChannelsWebsocketConnection.iopub_data_rate_limit = 10000000000
+EOF
+fi
+
+# Insert your script here to modify the config.json file
+OPENAI_API_KEY="${OPENAI_API_KEY}"
+MODEL_PROVIDER_ID="${model_provider_id}"
+CONFIG_FILE="/home/ubuntu/.local/share/jupyter/jupyter_ai/config.json"
+
+# Make dir and Touch file
+mkdir -p /home/ubuntu/.local/share/jupyter/jupyter_ai/
+touch /home/ubuntu/.local/share/jupyter/jupyter_ai/config.json
+
+# Modify the JSON configuration file
+jq --arg openai_api_key "$OPENAI_API_KEY" --arg model_provider_id "$MODEL_PROVIDER_ID" \
+    '{
+        model_provider_id: $model_provider_id,
+        embeddings_provider_id: null,
+        send_with_shift_enter: false,
+        fields: {
+            ($model_provider_id): {}
+        },
+        api_keys: {
+            OPENAI_API_KEY: $openai_api_key
+        },
+        completions_model_provider_id: null,
+        completions_fields: {},
+        embeddings_fields: {}
+    }' "$CONFIG_FILE" > tmp_config.json && mv tmp_config.json "$CONFIG_FILE"
+
+# Start Jupyterlab
+jupyter-lab --config="$CONF_FILE" --no-browser --ip="0.0.0.0" --port="$JUPYTERLAB_PORT" 2>&1
