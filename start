@@ -78,5 +78,11 @@ jq --arg openai_api_key "$OPENAI_API_KEY" --arg model_provider_id "$MODEL_PROVID
         embeddings_fields: {}
     }' "$CONFIG_FILE" > tmp_config.json && mv tmp_config.json "$CONFIG_FILE"
 
+# Print config file before start finished
+cat /opt/domino/workspaces/jupyterlab/start
+
 # Start Jupyterlab
 jupyter-lab --config="$CONF_FILE" --no-browser --ip="0.0.0.0" --port="$JUPYTERLAB_PORT" 2>&1
+
+# Print config file after start finished
+cat /opt/domino/workspaces/jupyterlab/start
