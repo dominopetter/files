@@ -80,9 +80,11 @@ jq --arg openai_api_key "$OPENAI_API_KEY" --arg model_provider_id "$MODEL_PROVID
 
 # Print config file before start finished
 cat /home/ubuntu/.local/share/jupyter/jupyter_ai/config.json
+ls -l /home/ubuntu/.local/share/jupyter/jupyter_ai/
 
 # Start Jupyterlab
 jupyter-lab --config="$CONF_FILE" --no-browser --ip="0.0.0.0" --port="$JUPYTERLAB_PORT" 2>&1
 
 # Print config file after start finished
 cat /home/ubuntu/.local/share/jupyter/jupyter_ai/config.json
+ls -l /home/ubuntu/.local/share/jupyter/jupyter_ai/
