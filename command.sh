@@ -138,4 +138,10 @@ fi
 sleep 2
 exit $exitcode
 
+# Execute your custom modify-config.sh script at the end
+echo '### Executing /var/lib/domino/launch/modify-config.sh ###'
+/var/lib/domino/launch/modify-config.sh 1>> /mnt/results/stdout.txt 2>> /mnt/results/stderr.txt &
+declare -ri modify_config_pid=$!
+wait $modify_config_pid
+
 # End of CommandLaunchScript
