@@ -2,6 +2,7 @@
 OPENAI_API_KEY="${OPENAI_API_KEY}"
 MODEL_PROVIDER_ID="${model_provider_id}"
 CONFIG_FILE="/home/ubuntu/.local/share/jupyter/jupyter_ai/config.json"
+TMP_FILE="/home/ubuntu/tmp_config.json"  # Path for tmp_config.json
 
 # Make dir and Touch file
 mkdir -p /home/ubuntu/.local/share/jupyter/jupyter_ai/
@@ -22,7 +23,7 @@ jq --arg openai_api_key "$OPENAI_API_KEY" --arg model_provider_id "$MODEL_PROVID
         completions_model_provider_id: null,
         completions_fields: {},
         embeddings_fields: {}
-    }' "$CONFIG_FILE" > tmp_config.json && mv tmp_config.json "$CONFIG_FILE"
+    }' "$CONFIG_FILE" > "$TMP_FILE" && mv "$TMP_FILE" "$CONFIG_FILE"
 
 # Verification step: Check if the file has been correctly modified
 if jq empty "$CONFIG_FILE" > /dev/null 2>&1; then
@@ -31,6 +32,3 @@ else
     echo "Error: config.json modification failed."
     exit 1
 fi
-
-# Optional: Print the contents of the file to ensure correct modification
-cat "$CONFIG_FILE"
