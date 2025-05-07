@@ -7,6 +7,10 @@
 # Copyright (C) 2024, Domino Data Lab, Inc.
 #
 
+# Confirm env vars
+echo "Model Provider ID: $model_provider_id"
+echo "OpenAI API Key: $OPENAI_API_KEY"
+
 CONF_DIR="${HOME}/.jupyterlab"
 CONF_FILE="${CONF_DIR}/jupyter_lab_config.py"
 JUPYTERLAB_PORT="8888"
